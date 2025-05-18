@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>雅思口语 AI 助手</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background-color: #f3f3f3;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background-color: #202123;
+      color: white;
+      padding: 1rem 2rem;
+      font-size: 1.5rem;
+      text-align: center;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      flex-direction: column;
+    }
+
+    .container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      text-align: center;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #10a37f;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0e8c6d;
+    }
+
+    .loading {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #333;
+      display: none;
+    }
+
+    #result-summary {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 8px;
+      max-width: 600px;
+      width: 100%;
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.875rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <header>雅思口语 AI 助手</header>
+  <main>
+    <div class="container">
+      <h2>上传你的口语音频文件</h2>
+      <form id="upload-form" action="/score" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm" required />
+        <button type="submit">上传并获取评分</button>
+        <div class="loading" id="loading-text">正在分析，请稍候...</div>
+      </form>
+    </div>
+    <div id="result-summary">
+      <h3>评分结果摘要</h3>
+      <pre id="summary-text"></pre>
+    </div>
+  </main>
+  <footer>
+    © 2025 GOAT IELTS 版权所有
+  </footer>
+
+  <script>
+    const form = document.getElementById('upload-form');
+    const loadingText = document.getElementById('loading-text');
+    const summaryBlock = document.getElementById('result-summary');
+    const summaryText = document.getElementById('summary-text');
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      loadingText.style.display = 'block';
+      summaryBlock.style.display = 'none';
+
+      const formData = new FormData(form);
+      const response = await fetch("/score", {
+        method: "POST",
+        body: formData
+      });
+
+      loadingText.style.display = 'none';
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "评分报告.docx";
+        a.click();
+
+        summaryBlock.style.display = 'block';
+        summaryText.textContent = "评分报告已生成并下载成功！\n请查收 Word 文档查看详细内容。";
+      } else {
+        summaryBlock.style.display = 'block';
+        summaryText.textContent = "上传失败，请重试或检查文件格式。";
+      }
+    });
+  </script>
+</body>
+</html>
+
