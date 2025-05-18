@@ -1,4 +1,10 @@
+from fastapi import FastAPI, UploadFile, Request
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+import shutil
 
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 
 
@@ -11,7 +17,6 @@ import Get
 from openai import OpenAI
 import os
 import openai
-import TransToPDF
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_COLOR_INDEX
 from docx.oxml.ns import qn
@@ -38,8 +43,11 @@ Main = f"""本评分报告是基于您提供的样本通过 AI 生成。请注�
 
 感谢您的理解和支持。"""
 
-# 设置API
-openai.api_key = "sk-proj-h5BsQNGeTNgpFQeoKNiAT3BlbkFJLV4MY4u2DWqROB4z4eMl"
+from dotenv import load_dotenv
+
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=openai.api_key)
 
 # 设置代理
 #os.environ["http_proxy"] = "http://localhost:7890"
@@ -680,9 +688,54 @@ def main():
         defective = getDefective(S_article)
         # summery = getSummery(S_article)
         GetWord(S_article, S_name, score, defective, Details, Main)
-        TransToPDF.TransToPDF(S_name)
         print(f"""*********************************第{i + 1}次结束***************************""")
 
+def run_scoring(input_path, output_path):
+    import Get
+    import datetime
+
+    folder_path = "temp"
+    file_name = input_path.split("/")[-1]
+    base_name = file_name.replace(".docx", "")
+
+    os.makedirs("articles", exist_ok=True)
+    shutil.copy(input_path, f"articles/{base_name}.docx")
+
+    criteria = read_pdf_content("ielts-speaking-band-descriptors.pdf")
+    key_assessment = read_pdf_content("ielts-speaking-key-assessment-criteria.pdf")
+
+    S_article = Get.getArticle("articles", 0)
+    S_name = base_name
+    score = getScore(S_article, criteria, key_assessment)
+    defective = getDefective(S_article)
+
+    GetWord(S_article, S_name, score, defective, Details, Main)
+
+    today = datetime.date.today()
+    docx_result = f"./results/{S_name}_Speaking_{today}.docx"
+    shutil.copy(docx_result, output_path)
 
 if __name__ == '__main__':
     main()
+
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/score")
+async def score(file: UploadFile):
+    input_path = f"temp/{file.filename}"
+    output_path = f"results/{file.filename.replace('.docx', '')}_scored.docx"
+
+    os.makedirs("temp", exist_ok=True)
+    os.makedirs("results", exist_ok=True)
+
+    with open(input_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    run_scoring(input_path, output_path)
+
+    return FileResponse(output_path, filename=os.path.basename(output_path))
