@@ -690,22 +690,36 @@ def main():
         GetWord(S_article, S_name, score, defective, Details, Main)
         print(f"""*********************************第{i + 1}次结束***************************""")
 
+def transcribe_audio(audio_path):
+    with open(audio_path, "rb") as audio_file:
+        transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        return transcript["text"]
+
 def run_scoring(input_path, output_path):
     import Get
     import datetime
+    import os
 
-    folder_path = "temp"
-    file_name = input_path.split("/")[-1]
-    base_name = file_name.replace(".docx", "")
+    # 判断文件类型
+    ext = os.path.splitext(input_path)[1].lower()
 
-    os.makedirs("articles", exist_ok=True)
-    shutil.copy(input_path, f"articles/{base_name}.docx")
+    if ext in ['.mp3', '.mp4', '.mpeg', '.mpga', '.m4a', '.wav', '.webm']:
+        S_article = transcribe_audio(input_path)
+    elif ext == '.docx':
+        os.makedirs("articles", exist_ok=True)
+        file_name = os.path.basename(input_path)
+        base_name = file_name.replace(".docx", "")
+        shutil.copy(input_path, f"articles/{base_name}.docx")
+        S_article = Get.getArticle("articles", 0)
+    else:
+        raise ValueError("不支持的文件类型")
 
+    if not S_article:
+        raise ValueError("无法提取有效内容")
+
+    S_name = os.path.splitext(os.path.basename(input_path))[0]
     criteria = read_pdf_content("ielts-speaking-band-descriptors.pdf")
     key_assessment = read_pdf_content("ielts-speaking-key-assessment-criteria.pdf")
-
-    S_article = Get.getArticle("articles", 0)
-    S_name = base_name
     score = getScore(S_article, criteria, key_assessment)
     defective = getDefective(S_article)
 
@@ -714,7 +728,7 @@ def run_scoring(input_path, output_path):
     today = datetime.date.today()
     docx_result = f"./results/{S_name}_Speaking_{today}.docx"
     shutil.copy(docx_result, output_path)
-
+    
 if __name__ == '__main__':
     main()
 
