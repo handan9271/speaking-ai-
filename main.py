@@ -16,13 +16,13 @@ from docx.shared import Pt, RGBColor
 import fitz  # PyMuPDF
 
 # ===== 自定义模块导入 =====
-import Get  # 请确保本地有 Get.py 文件
+import Get  # 请确认 Get.py 存在
 
-# ===== 应用初始化 =====
+# ===== FastAPI 应用初始化 =====
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# ===== OpenAI 客户端初始化 =====
+# ===== OpenAI 客户端初始化（新版 SDK）=====
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # 索引
