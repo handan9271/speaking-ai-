@@ -1,29 +1,28 @@
+# ===== 标准库导入 =====
+import os
+import shutil
+import datetime
+
+# ===== 第三方库导入 =====
 from fastapi import FastAPI, UploadFile, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
-import shutil
-
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-
-
-
-
-
-
-
-import Get
-
 from openai import OpenAI
 from docx import Document
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_COLOR_INDEX
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_COLOR_INDEX, WD_LINE_SPACING
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from docx.shared import Pt, RGBColor
-import datetime
-from docx.enum.text import WD_LINE_SPACING
 import fitz  # PyMuPDF
 
+# ===== 自定义模块导入 =====
+import Get  # 请确保本地有 Get.py 文件
+
+# ===== 应用初始化 =====
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+
+# ===== OpenAI 客户端初始化 =====
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # 索引
