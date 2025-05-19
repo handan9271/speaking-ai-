@@ -42,20 +42,7 @@ Main = f"""本评分报告是基于您提供的样本通过 AI 生成。请注�
 
 感谢您的理解和支持。"""
 
-import os
-from openai import OpenAI
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=openai.api_key)
-
-# 设置代理
-#os.environ["http_proxy"] = "http://localhost:7890"
-#os.environ["https_proxy"] = "http://localhost:7890"
-
-# 创建openai client
-client = OpenAI(
-    api_key=openai.api_key,
-)
 # 读取PDF文件内容
 def read_pdf_content(pdf_path):
     document = fitz.open(pdf_path)
