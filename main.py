@@ -15,8 +15,6 @@ templates = Jinja2Templates(directory="templates")
 import Get
 
 from openai import OpenAI
-import os
-import openai
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_COLOR_INDEX
 from docx.oxml.ns import qn
@@ -25,6 +23,8 @@ from docx.shared import Pt, RGBColor
 import datetime
 from docx.enum.text import WD_LINE_SPACING
 import fitz  # PyMuPDF
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # 索引
 Details = f"""Original:原文
@@ -43,9 +43,9 @@ Main = f"""本评分报告是基于您提供的样本通过 AI 生成。请注�
 
 感谢您的理解和支持。"""
 
-from dotenv import load_dotenv
+import os
+from openai import OpenAI
 
-load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=openai.api_key)
 
@@ -690,10 +690,13 @@ def main():
         GetWord(S_article, S_name, score, defective, Details, Main)
         print(f"""*********************************第{i + 1}次结束***************************""")
 
-def transcribe_audio(audio_path):
-    with open(audio_path, "rb") as audio_file:
-        transcript = openai.Audio.transcribe("whisper-1", audio_file)
-        return transcript["text"]
+def transcribe_audio(audio_file_path):
+    with open(audio_file_path, "rb") as f:
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=f
+        )
+    return transcript.text
 
 def run_scoring(input_path, output_path):
     import Get
