@@ -100,9 +100,9 @@
   <header>雅思口语 AI 助手</header>
   <main>
     <div class="container">
-      <h2>上传你的口语音频文件</h2>
+      <h2>上传你的口语答案文件（音频或文本）</h2>
       <form id="upload-form" action="/score" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm" required />
+        <input type="file" name="file" accept=".mp3,.wav,.m4a,.txt,.docx" required />
         <button type="submit">上传并获取评分</button>
         <div class="loading" id="loading-text">正在分析，请稍候...</div>
       </form>
@@ -153,4 +153,3 @@
   </script>
 </body>
 </html>
-
