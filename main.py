@@ -689,7 +689,6 @@ def run_scoring(input_path, output_path):
     import datetime
     import os
 
-    # 判断文件类型
     ext = os.path.splitext(input_path)[1].lower()
 
     if ext in ['.mp3', '.mp4', '.mpeg', '.mpga', '.m4a', '.wav', '.webm']:
@@ -700,6 +699,9 @@ def run_scoring(input_path, output_path):
         base_name = file_name.replace(".docx", "")
         shutil.copy(input_path, f"articles/{base_name}.docx")
         S_article = Get.getArticle("articles", 0)
+    elif ext == '.txt':
+        with open(input_path, "r", encoding="utf-8") as f:
+            S_article = f.read()
     else:
         raise ValueError("不支持的文件类型")
 
@@ -709,14 +711,15 @@ def run_scoring(input_path, output_path):
     S_name = os.path.splitext(os.path.basename(input_path))[0]
     criteria = read_pdf_content("ielts-speaking-band-descriptors.pdf")
     key_assessment = read_pdf_content("ielts-speaking-key-assessment-criteria.pdf")
-    score = getScore(S_article, criteria, key_assessment)
-    defective = getDefective(S_article)
+    score = Get.getScore(S_article, criteria, key_assessment)
+    defective = Get.getDefective(S_article)
 
-    GetWord(S_article, S_name, score, defective, Details, Main)
+    Get.GetWord(S_article, S_name, score, defective, Get.Details, Get.Main)
 
     today = datetime.date.today()
     docx_result = f"./results/{S_name}_Speaking_{today}.docx"
     shutil.copy(docx_result, output_path)
+    
     
 if __name__ == '__main__':
     main()
@@ -739,6 +742,9 @@ async def score(file: UploadFile):
     with open(input_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    run_scoring(input_path, output_path)
+    try:
+        run_scoring(input_path, output_path)
+    except Exception as e:
+        return {"error": str(e)}
 
     return FileResponse(output_path, filename=os.path.basename(output_path))
